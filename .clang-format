@@ -1,0 +1,12 @@
+# We'll use defaults from the LLVM style, but with 4 columns indentation.
+# Simple 4-space style — no tabs, no nonsense
+BasedOnStyle: LLVM
+IndentWidth:          4
+TabWidth:             4
+UseTab:               Never
+ColumnLimit:          100      # or 120 — pick what fits your monitor
+AccessModifierOffset: -4       # private/public at same level as class (common sane choice)
+IndentAccessModifiers: false   # most people prefer this
+BreakBeforeBraces:    Allman   # or Attach if you like K&R style better — fight me
+AllowShortFunctionsOnASingleLine: None
+SortIncludes: Never
