@@ -1,5 +1,3 @@
-
-
 CC = clang++
 SRC_DIR = src
 BIN_DIR = build

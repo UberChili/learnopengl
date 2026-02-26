@@ -3,6 +3,13 @@
 #include <GLFW/glfw3.h>
 #include <print>
 
+const char *vertexShaderSource = "#version 330 core\n"
+                                 "layout (location = 0) in vec3 aPos;\n"
+                                 "void main()\n"
+                                 "{\n"
+                                 "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+                                 "}\0";
+
 void framebuffer_size_callback(GLFWwindow *, int width, int height);
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *, int width, int height)
@@ -43,6 +50,37 @@ int main(void)
         return 1;
     }
     std::println("Window successfully created");
+
+    // vertex data
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f, // first
+        0.5f,  -0.5f, 0.0f, // second
+        0.0f,  0.5f,  0.0f  // third
+    };
+
+    // Generating a Vertex Buffer Object
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    // Generating a vertex shader
+    unsigned int vertex_shader;
+    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+
+    glShaderSource(vertex_shader, 1, &vertexShaderSource, nullptr);
+    glCompileShader(vertex_shader);
+
+    // check if compilation was successfull
+    int success;
+    std::string infoLog;
+    glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
+        std::println("Error::Shader::vertex::compilation_failed");
+    }
 
     // render loop
     while (!glfwWindowShouldClose(window))
