@@ -10,6 +10,14 @@ const char *vertexShaderSource = "#version 330 core\n"
                                  "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
                                  "}\0";
 
+const char *fragmentShaderSource = "#version 330 core\n"
+                                   "out vec4 FragColor;\n"
+                                   "\n"
+                                   "void main()\n"
+                                   "{\n"
+                                   "    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f\n"
+                                   "}\0";
+
 void framebuffer_size_callback(GLFWwindow *, int width, int height);
 void processInput(GLFWwindow *window);
 void framebuffer_size_callback(GLFWwindow *, int width, int height)
@@ -69,18 +77,31 @@ int main(void)
     unsigned int vertex_shader;
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 
+    int success;
+    char infoLog[512];
     glShaderSource(vertex_shader, 1, &vertexShaderSource, nullptr);
     glCompileShader(vertex_shader);
-
-    // check if compilation was successfull
-    int success;
-    std::string infoLog;
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success);
     if (!success)
     {
         glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
         std::println("Error::Shader::vertex::compilation_failed");
     }
+
+    // creating and compiling fragment shader
+    unsigned int fragment_shader;
+    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    glShaderSource(fragment_shader, 1, &fragmentShaderSource, nullptr);
+    glCompileShader(fragment_shader);
+
+    // creating program object and linking shaders
+    unsigned int shader_program;
+    shader_program = glCreateProgram();
+    // attach shaders and link them
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram(shader_program);
 
     // render loop
     while (!glfwWindowShouldClose(window))
