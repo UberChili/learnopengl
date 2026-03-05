@@ -1,4 +1,3 @@
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <print>
@@ -40,7 +39,10 @@ int main(void)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "GLFW Window on Fedora", NULL, NULL);
+    int screen_width = 800;
+    int screen_height = 600;
+    GLFWwindow *window =
+        glfwCreateWindow(screen_width, screen_height, "GLFW Window on Fedora", NULL, NULL);
     if (window == nullptr)
     {
         std::println("Failed to create GLFW window");
@@ -56,6 +58,9 @@ int main(void)
         std::println("Failed to initialize GLAD");
         return 1;
     }
+    // Fix for retina display, try on desktop or comment if doesn't work the same
+    glfwGetFramebufferSize(window, &screen_width, &screen_height);
+    glViewport(0, 0, screen_width, screen_height);
     std::println("Window successfully created");
 
     // build and compile shader program
@@ -71,7 +76,7 @@ int main(void)
     if (!success)
     {
         glGetShaderInfoLog(vertex_shader, 512, nullptr, infoLog);
-        std::println("Error::Shader::vertex::compilation_failed");
+        std::println("Error::Shader::vertex::compilation_failed: {}", infoLog);
         return 1;
     }
     // Fragment shader
@@ -83,7 +88,7 @@ int main(void)
     if (!success)
     {
         glGetShaderInfoLog(fragment_shader, 512, nullptr, infoLog);
-        std::println("Error::Shader::fragment::compilation_failed");
+        std::println("Error::Shader::fragment::compilation_failed: {}", infoLog);
         return 1;
     }
     // link shaders
@@ -96,11 +101,11 @@ int main(void)
     if (!success)
     {
         glGetProgramInfoLog(shader_program, 512, nullptr, infoLog);
-        std::println("Error::Shader::program::linking_failed");
+        std::println("Error::Shader::program::linking_failed: {}", infoLog);
         return 1;
     }
-    // use program and delete shader objects since we've linked them to the program
-    // we don't need them anymore
+    // use program and delete shader objects since we've linked them to the
+    // program we don't need them anymore
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
 
@@ -115,41 +120,113 @@ int main(void)
     // };
 
     // example with EBOs
-    float vertices[] = {
-        0.5f,  0.5f,  0.0f, // top right
-        0.5f,  -0.5f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, //  bottom left
-        -0.5f, 0.5f,  0.0f  // top left
+    // float vertices[] = {
+    //     0.5f,  0.5f,  0.0f, // top right
+    //     0.5f,  -0.5f, 0.0f, // bottom right
+    //     -0.5f, -0.5f, 0.0f, //  bottom left
+    //     -0.5f, 0.5f,  0.0f  // top left
+    // };
+    // unsigned int indices[] = {
+    //     // note that we start from 0
+    //     0, 1, 3, // first triangle
+    //     1, 2, 3, // second triangle
+    // };
+
+    // Exercise 1
+    // float vertices[] = {
+    //     -0.5f, 0.5f, 0.0f, // A, top
+    //     -0.9f, 0.0f, 0.0f, // A, left
+    //     0.0f,  0.0f, 0.0f, // A right
+    //     0.5f,  0.5f, 0.0f, // B top
+    //     0.0f,  0.0f, 0.0f, // B left
+    //     0.9f,  0.0f, 0.0f, // B right
+    //     // 0.5f,  0.5f,  0.0f, // top right
+    //     // 0.5f,  -0.5f, 0.0f, // bottom right
+    //     // -0.5f, -0.5f, 0.0f, //  bottom left
+    //     // -0.5f, 0.5f,  0.0f  // top left
+    // };
+
+    // unsigned int EBO, VBO, VAO;
+    // glGenVertexArrays(1, &VAO);
+    // glGenBuffers(1, &VBO);
+    // // glGenBuffers(1, &EBO);
+    // // bind the vertex array object first, then bind and set vertex buffer(s),
+    // // and then configure vertex attributes(s)
+    // glBindVertexArray(VAO);
+    //
+    // // 2. copy vertices array in a vertex buffer for OpenGL to use
+    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // // 3. copy our index array in an element buffer for OpenGL to use
+    // // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    // // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // // 4. then set the vertex attributes pointers
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    // glEnableVertexAttribArray(0);
+    //
+    // // note that this is allowed, the call to glVertexAttribPointer registered VBO
+    // // as the vertex attribute's bound vertex buffer object so afterwards we can
+    // // safely unbind
+    // glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //
+    // Exercise 2
+    float verticesA[] = {
+        -0.5f, 0.5f, 0.0f, // A, top
+        -0.9f, 0.0f, 0.0f, // A, left
+        0.0f,  0.0f, 0.0f, // A right
     };
-    unsigned int indices[] = {
-        // note that we start from 0
-        0, 1, 3, // first triangle
-        1, 2, 3, // second triangle
+    float verticesB[] = {
+        0.5f, 0.5f, 0.0f, // B top
+        0.0f, 0.0f, 0.0f, // B left
+        0.9f, 0.0f, 0.0f, // B right
     };
 
-    unsigned int EBO, VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    // unsigned int VBOA, VAOA, VBOB, VAOB;
+    // glGenVertexArrays(1, &VAOA);
+    // glGenVertexArrays(1, &VAOB);
+    // glGenBuffers(1, &VBOA);
+    // glGenBuffers(1, &VBOB);
+    // // bind the vertex array object first, then bind and set vertex buffer(s),
+    // // and then configure vertex attributes(s)
+    // glBindVertexArray(VAOA);
+    // // 2. copy vertices array in a vertex buffer for OpenGL to use
+    // // First A then B
+    // glBindBuffer(GL_ARRAY_BUFFER, VBOA);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(verticesA), verticesA, GL_STATIC_DRAW);
+    // // 4. then set the vertex attributes pointers
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    // glEnableVertexAttribArray(0);
+    // // Now B
+    // glBindVertexArray(VAOB);
+    // glBindBuffer(GL_ARRAY_BUFFER, VBOB);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(verticesB), verticesB, GL_STATIC_DRAW);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    // glEnableVertexAttribArray(0);
+
+    // More clean:
+    unsigned int VAO[2] = {0};
+    unsigned int VBO[2] = {0};
+    glGenVertexArrays(2, VAO);
+    glGenBuffers(2, VBO);
     // bind the vertex array object first, then bind and set vertex buffer(s),
     // and then configure vertex attributes(s)
-    glBindVertexArray(VAO);
-
+    glBindVertexArray(VAO[0]);
     // 2. copy vertices array in a vertex buffer for OpenGL to use
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    // 3. copy our index array in an element buffer for OpenGL to use
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    // 4. then set the vertex attributes pointers
+    // First one, then the other
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesA), verticesA, GL_STATIC_DRAW);
+    // then set the vertex attributes pointers
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+    // Now the other
+    glBindVertexArray(VAO[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesB), verticesB, GL_STATIC_DRAW);
+    // then set the vertex attributes pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex
-    // attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     while (!glfwWindowShouldClose(window))
@@ -167,23 +244,26 @@ int main(void)
         // --------------------
         glUseProgram(shader_program);
         // Using VAO (first example)
-        // glBindVertexArray(VAO);
-        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(VAO[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(VAO[1]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // using EBO (second example)
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+        // glBindVertexArray(VAO);
+        // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glBindVertexArray(0);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved
+        // etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
     // de-allocate all resources once they've outlived their purpose
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(2, VAO);
+    glDeleteBuffers(2, VBO);
+    // glDeleteBuffers(1, &EBO);
     glDeleteProgram(shader_program);
 
     glfwTerminate();
